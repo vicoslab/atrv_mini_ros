@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+
 using namespace std;
 
 ATRVmini::ATRVmini() {
@@ -58,12 +59,31 @@ float ATRVmini::getVoltage() const {
         return voltage/100.0 + POWER_OFFSET;
 }
 
+float ATRVmini::getPercentage() const {
+
+    float volt = getVoltage();
+
+    // 12S voltage thresholds
+    const float V_MAX = 25.77f;
+    const float V_MID = 24.45f;
+    const float V_MIN = 23.25f;
+
+    if(volt > V_MAX)
+        volt = V_MAX;
+    else if(volt < V_MIN)
+        volt = V_MIN;
+
+    if (volt >= V_MID) {
+        // Map 100% - 50% to 100% - 5%
+        return 0.05f + (volt - V_MID) / (V_MAX - V_MID) * 0.95f;
+    } else {
+        // Map 50% - 0% to 5% - 0%
+        return (volt - V_MIN) / (V_MID - V_MIN) * 0.5f;
+    }
+}
+
 bool ATRVmini::isPluggedIn() const {
-    float v = getVoltage();
-    if (v>PLUGGED_THRESHOLD)
-        return true;
-    else
-        return false;
+    return getVoltage() > PLUGGED_THRESHOLD;
 }
 
 int ATRVmini::getNumBodySonars() const {
@@ -110,8 +130,7 @@ void ATRVmini::setSonarPower(bool on) {
     configureSonar(echo, ping, set, val);
 }
 
-void ATRVmini::setMovement( float tvel, float rvel,
-                       float acceleration ) {
+void ATRVmini::setMovement(float tvel, float rvel, float acceleration) {
     setVelocity(tvel * ODO_DISTANCE_CONVERSION,
                 rvel * ODO_ANGLE_CONVERSION,
                 acceleration * ODO_DISTANCE_CONVERSION);

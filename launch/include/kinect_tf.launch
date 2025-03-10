@@ -1,6 +1,0 @@
-<launch>
-<!--- 80 = ms. 100ms = 10 hz -->
-<node pkg="tf" type="static_transform_publisher" name="base_to_kinect_broadcaster" args="0.165 0 0.232 0 0 0 base camera_depth_frame 70" />
-<!--- point cloud transform, popravi x/y/z/jaw/pitch/roll-->
-<node pkg="tf" type="static_transform_publisher" name="depth_cloud_broadcast" args="0.165 0 0.232 0 0 30 base camera_rgb_optical_frame 70" />
-</launch>

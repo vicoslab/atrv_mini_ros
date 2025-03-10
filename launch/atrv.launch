@@ -1,27 +1,16 @@
 <launch>
 
-  <!-- robot sound support  -->
-  <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py" output="screen"/>
-  
   <!-- robot communication and control - rflex -->
-  <node pkg="atrv_mini_ros" type="atrv_mini_node" name="ATRVmini_node" output="screen">
+  <node pkg="atrv_mini_ros" type="atrv_mini_node" name="atrv_node" output="screen">
     <param name="port" value="/dev/ttyUSB0"/>
   </node>
 
-  <!-- robot footprint  -->
-  <node pkg="atrv_mini_ros" type="footprint" name="ATRVmini_footprint" output="screen"/>
-
-  <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop -->
-  <include file="$(find atrv_mini_ros)/launch/include/velocity_smoother.launch"/>
-  
-  <node pkg="joy" type="joy_node" name="joystick" output="screen"/>
-  <node pkg="atrv_mini_ros" type="atrv_mini_joy" name="ATRVmini_joy" output="screen">
-    <param name="scale_angular" value="0.3"/>
-    <param name="scale_linear" value="0.2"/>
-    <remap from="ATRVmini_joy/cmd_vel" to="/ATRVmini_node/cmd_vel"/>
-  </node>
-  
-  <!-- robot sound -->
-  <node pkg="atrv_mini_ros" type="atrv_mini_sound" name="ATRVmini_sound" output="screen"/>
+  <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop 
+  <node pkg="nodelet" type="nodelet" name="teleop_velocity_smoother" args="load yocs_velocity_smoother/VelocitySmootherNodelet mobile_base_nodelet_manager">
+    <rosparam file="$(find atrv_mini_ros)/launch/param/smoother.yaml" command="load"/>
+    <remap from="teleop_velocity_smoother/raw_cmd_vel" to="/ATRVmini_joy/cmd_vel"/>
+    <remap from="teleop_velocity_smoother/odometry" to="/ATRVmini_node/odom"/>
+    <remap from="teleop_velocity_smoother/smooth_cmd_vel" to="/ATRVmini_joy/cmd_vel"/>
+  </node>-->
 
 </launch>

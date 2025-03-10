@@ -60,7 +60,7 @@ const double BUMPER_HEIGHT_OFFSET[][4] = {{.5,.5,.05,.05},
 #define USE_JOYSTICK 0
 #define JOY_POS_RATIO 6
 #define JOY_ANG_RATIO -0.01
-#define POWER_OFFSET 1.2
-#define PLUGGED_THRESHOLD 25.0
+#define POWER_OFFSET 1.82 
+#define PLUGGED_THRESHOLD 27.6
 
 #endif

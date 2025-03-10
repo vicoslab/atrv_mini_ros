@@ -6,12 +6,15 @@
 #include <std_msgs/Float32.h>
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/BatteryState.h>
 #include <nav_msgs/Odometry.h>
 #include <angles/angles.h>
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <cmath>
 
 
 using namespace std;
@@ -27,18 +30,18 @@ class ATRVminiNode {
         ros::Subscriber subs[4];			///< Subscriber handles (cmd_vel, cmd_accel, cmd_sonar_power, cmd_brake_power)
         ros::Publisher base_sonar_pub;		///< Sonar Publisher for Base Sonars (sonar_cloud_base)
         ros::Publisher body_sonar_pub;		///< Sonar Publisher for Body Sonars (sonar_cloud_body)
-        ros::Publisher voltage_pub;			///< Voltage Publisher (voltage)
+        ros::Publisher battery_pub;			///< Voltage Publisher (voltage)
         ros::Publisher brake_power_pub;		///< Brake Power Publisher (brake_power)
         ros::Publisher sonar_power_pub;		///< Sonar Power Publisher (sonar_power)
         ros::Publisher odom_pub;			///< Odometry Publisher (odom)
-        ros::Publisher plugged_pub;			///< Plugged In Publisher (plugged_in)
         ros::Publisher joint_pub; ///< Joint State Publisher (state)
         ros::Publisher bump_pub; ///< Bump Publisher (bumps)
+        ros::Publisher twist_pub;
         tf::TransformBroadcaster broadcaster; ///< Transform Broadcaster (for odom)
 
-        bool isSonarOn, isBrakeOn;
+        bool isSonarOn, isBrakeOn, last_brake;
         float acceleration;
-        float last_distance, last_bearing, last_tvel, last_rvel;
+        float last_distance, last_bearing, last_voltage, last_tvel, last_rvel;
         float x_odo, y_odo, a_odo;
         float cmdTranslation, cmdRotation;
         bool brake_dirty, sonar_dirty;
@@ -48,6 +51,8 @@ class ATRVminiNode {
         int prev_bumps;
         bool sonar_just_on;
 
+        void publishBrake();
+        void publishBattery();
         void publishOdometry();
         void publishSonar();
         void publishBumps();
@@ -70,6 +75,7 @@ ATRVminiNode::ATRVminiNode() : n ("~") {
     isSonarOn = isBrakeOn = false;
     brake_dirty = sonar_dirty = false;
     sonar_just_on = false;
+    last_brake = false;
     cmdTranslation = cmdRotation = 0.0;
     updateTimer = 99;
     initialized = false;
@@ -82,22 +88,26 @@ ATRVminiNode::ATRVminiNode() : n ("~") {
 
     base_sonar_pub = n.advertise<sensor_msgs::PointCloud>("sonar_cloud_base", 50);
     body_sonar_pub = n.advertise<sensor_msgs::PointCloud>("sonar_cloud_body", 50);
-    sonar_power_pub = n.advertise<std_msgs::Bool>("sonar_power", 1);
-    brake_power_pub = n.advertise<std_msgs::Bool>("brake_power", 1); 
-    voltage_pub = n.advertise<std_msgs::Float32>("voltage", 1);
+    sonar_power_pub = n.advertise<std_msgs::Bool>("sonar_power", 1, true);
+    brake_power_pub = n.advertise<std_msgs::Bool>("brake_power", 1, true); 
     odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
-    plugged_pub = n.advertise<std_msgs::Bool>("plugged_in", 1);
+    twist_pub = n.advertise<geometry_msgs::TwistStamped>("twist", 50);
     joint_pub = n.advertise<sensor_msgs::JointState>("state", 1);
     bump_pub = n.advertise<sensor_msgs::PointCloud>("bump", 5);
+    battery_pub = n.advertise<sensor_msgs::BatteryState>("battery_state", 1, true);
 }
 
 int ATRVminiNode::initialize(const char* port) {
     int ret = driver.initialize(port);
     if (ret < 0)
         return ret;
+        
+    //Values changed by matejD. Originals:
+    //driver.setOdometryPeriod (100000);
+    //driver.setDigitalIoPeriod(100000);
 
-    driver.setOdometryPeriod (100000);
-    driver.setDigitalIoPeriod(100000);
+    driver.setOdometryPeriod(10000);
+    driver.setDigitalIoPeriod(10000);
     driver.motionSetDefaults();
     return 0;
 }
@@ -114,10 +124,11 @@ ATRVminiNode::~ATRVminiNode() {
 void ATRVminiNode::NewCommand(const geometry_msgs::Twist::ConstPtr& msg) {
     cmdTranslation = msg->linear.x;
     cmdRotation = msg->angular.z;
+    driver.setMovement(cmdTranslation, cmdRotation, acceleration);
 }
 
 /// cmd_acceleration callback
-void ATRVminiNode::SetAcceleration (const std_msgs::Float32::ConstPtr& msg) {
+void ATRVminiNode::SetAcceleration(const std_msgs::Float32::ConstPtr& msg) {
     acceleration = msg->data;
 }
 
@@ -135,14 +146,14 @@ void ATRVminiNode::ToggleBrakePower(const std_msgs::Bool::ConstPtr& msg) {
 
 void ATRVminiNode::spinOnce() {
     // Sending the status command too often overwhelms the driver
-    if (updateTimer>=100) {
+    if (updateTimer >= 30) {
         driver.sendSystemStatusCommand();
         updateTimer = 0;
     }
     updateTimer++;
 
-    if (cmdTranslation != 0 || cmdRotation != 0)
-        driver.setMovement(cmdTranslation, cmdRotation, acceleration);
+    //if (cmdTranslation != 0 || cmdRotation != 0)
+        //driver.setMovement(cmdTranslation, cmdRotation, acceleration);
 
     if (sonar_dirty) {
         driver.setSonarPower(isSonarOn);
@@ -152,23 +163,65 @@ void ATRVminiNode::spinOnce() {
     if (brake_dirty) {
         driver.setBrakePower(isBrakeOn);
         brake_dirty = false;
-        updateTimer = 99;
+        //updateTimer = 99;
     }
 
     std_msgs::Bool bmsg;
     bmsg.data = isSonarOn;
     sonar_power_pub.publish(bmsg);
-    bmsg.data = driver.getBrakePower();
-    brake_power_pub.publish(bmsg);
-    bmsg.data = driver.isPluggedIn();
-    plugged_pub.publish(bmsg);
-    std_msgs::Float32 vmsg;
-    vmsg.data = driver.getVoltage();
-    voltage_pub.publish(vmsg);
 
+    publishBrake();
+    publishBattery();
     publishOdometry();
     publishSonar();
     publishBumps();
+}
+
+void ATRVminiNode::publishBrake() {
+
+    bool brake = driver.getBrakePower();
+
+    if(last_brake != brake){
+        last_brake = brake;
+
+        std_msgs::Bool msg;
+        msg.data = brake;
+        brake_power_pub.publish(msg);
+    }
+}
+
+void ATRVminiNode::publishBattery() {
+
+    float voltage = driver.getVoltage();
+
+    if(voltage != last_voltage){
+        last_voltage = voltage;
+
+        sensor_msgs::BatteryState msg;
+        msg.capacity = 18;
+        msg.design_capacity = 18;
+        msg.current = std::nanf("");
+        msg.temperature = std::nanf("");
+        msg.voltage = voltage;
+        msg.percentage = driver.getPercentage();
+        msg.charge = 18 * msg.percentage;
+        msg.present = true;
+
+        if(driver.isPluggedIn()){
+            msg.power_supply_status = msg.POWER_SUPPLY_STATUS_CHARGING;
+        }else{
+            msg.power_supply_status = msg.POWER_SUPPLY_STATUS_DISCHARGING;
+        }
+
+        msg.power_supply_health = msg.POWER_SUPPLY_HEALTH_UNKNOWN;
+        msg.power_supply_technology = msg.POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+
+        msg.cell_voltage = std::vector<float>(12, voltage/12.0); 
+
+        msg.location = "front&back";
+        msg.serial_number = "Unknown";
+        battery_pub.publish(msg);
+    }
 }
 
 /** Integrates over the lastest raw odometry readings from
@@ -220,7 +273,7 @@ void ATRVminiNode::publishOdometry() {
     geometry_msgs::TransformStamped odom_trans;
     odom_trans.header.stamp = ros::Time::now();
     odom_trans.header.frame_id = "odom";
-    odom_trans.child_frame_id = "base";
+    odom_trans.child_frame_id = "base_link";
 
     odom_trans.transform.translation.x = x_odo;
     odom_trans.transform.translation.y = y_odo;
@@ -240,7 +293,7 @@ void ATRVminiNode::publishOdometry() {
     odom.pose.pose.orientation = odom_quat;
 
     //set the velocity
-    odom.child_frame_id = "base";
+    odom.child_frame_id = "base_link";
     float tvel = driver.getTranslationalVelocity();
 	float d_tvel = tvel-last_tvel; 
 	if (d_tvel > 1.0 || d_tvel < -1.0) { //1.2 worked quite ok
@@ -258,9 +311,17 @@ void ATRVminiNode::publishOdometry() {
 
 	last_rvel = rvel;
 	//printf("data %f %f %f %f %f\n", tvel, rvel, distance, d_rvel, d_tvel);
+	
+	
+	//publish the pure twist stamped message
+	geometry_msgs::TwistStamped twist_stamped;
+	twist_stamped.header.stamp = ros::Time::now();
+	twist_stamped.twist.linear.x = tvel;
+	twist_stamped.twist.angular.z = rvel;
 
     //publish the messages
     odom_pub.publish(odom);
+    twist_pub.publish(twist_stamped);
 
     // finally, publish the joint state
     sensor_msgs::JointState joint_state;
@@ -277,7 +338,7 @@ void ATRVminiNode::publishOdometry() {
 void ATRVminiNode::publishSonar() {
     sensor_msgs::PointCloud cloud;
     cloud.header.stamp = ros::Time::now();
-    cloud.header.frame_id = "base";
+    cloud.header.frame_id = "base_link";
 
     if (isSonarOn) {
         driver.getBaseSonarPoints(&cloud);
@@ -298,7 +359,7 @@ void ATRVminiNode::publishBumps() {
     sensor_msgs::PointCloud cloud1, cloud2;
     cloud1.header.stamp = ros::Time::now();
     cloud2.header.stamp = ros::Time::now();
-    cloud1.header.frame_id = "base";
+    cloud1.header.frame_id = "base_link";
     cloud2.header.frame_id = "body";
     int bumps = driver.getBaseBumps(&cloud1) +
                 driver.getBodyBumps(&cloud2);
@@ -311,7 +372,7 @@ void ATRVminiNode::publishBumps() {
 }
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "ATRVmini_node");
+    ros::init(argc, argv, "atrv_node");
     ATRVminiNode node;
     std::string port;
     node.n.param<std::string>("port", port, "/dev/ttyUSB0");
@@ -324,7 +385,7 @@ int main(int argc, char** argv) {
 
 
     int hz;
-    node.n.param("rate", hz, 50);
+    node.n.param("rate", hz, 15);
     ros::Rate loop_rate(hz);
 
     while (ros::ok()) {

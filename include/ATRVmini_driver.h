@@ -18,6 +18,7 @@ class ATRVmini : public RFLEX {
         float getTranslationalVelocity() const;
         float getRotationalVelocity() const;
         float getVoltage() const;
+        float getPercentage() const;
         bool isPluggedIn() const;
         int getNumBodySonars() const;
         int getNumBaseSonars() const;

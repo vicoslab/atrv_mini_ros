@@ -88,7 +88,7 @@ RFLEX::RFLEX() {
 
 int RFLEX::initialize(const char* device_name) {
     // Open the port
-    fd = open(device_name, O_RDWR | O_NONBLOCK);
+    fd = open(device_name, O_RDWR | O_NOCTTY | O_SYNC);
     if (fd == -1) {
         fprintf(stderr,"Could not open serial port %s\n", device_name );
         return -1;
@@ -420,18 +420,20 @@ void RFLEX::parseSysReport( const unsigned char* buffer ) {
 
         break;
 
-    case SYS_STATUS:
+    case SYS_STATUS: {
         if (length < 9) {
             fprintf(stderr, "Got bad Sys packet (status)\n");
             break;
         }
-        timeStamp=getInt32(&(buffer[6]));
-        // raw voltage measurement...needs calibration offset added
-        voltage=getInt32(&(buffer[10]));
-        brake=buffer[14];
+        timeStamp = getInt32(&(buffer[6]));
+        long raw_volt = getInt32(&(buffer[10]));
 
+        if (raw_volt > 0) { // sometimes.. we get nothing
+            voltage = raw_volt;
+        }
+        brake = buffer[14];
         break;
-
+    }
     default:
         fprintf(stderr,"Unknown sys opcode recieved\n");
     }

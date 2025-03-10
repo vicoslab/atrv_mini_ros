@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
 <package>
   <name>atrv_mini_ros</name>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <description>The atrv_mini_ros package puts ROS on the iRobot ATRV Mini robot. </description>
 
   <maintainer email="luka.cehovin@fri.uni-lj.si">Luka Čehovin</maintainer>
   <maintainer email="jaka.cikac@gmail.com">Jaka Cikač</maintainer>
+  <maintainer email="vid.rijavec@fri.uni-lj.si">Jaka Cikač</maintainer>
   <license>BSD</license>
-  <url type="website">https://trac.vicos.si/ros</url>
+
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>rospy</build_depend>
   <build_depend>roscpp</build_depend>
@@ -17,7 +18,6 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>tf</build_depend>
   <build_depend>angles</build_depend>
-  <build_depend>sound_play</build_depend>
 
   <run_depend>rospy</run_depend>
   <run_depend>roscpp</run_depend>
@@ -27,7 +27,6 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
   <run_depend>angles</run_depend>
-  <run_depend>sound_play</run_depend>
 
   <export>
   </export>

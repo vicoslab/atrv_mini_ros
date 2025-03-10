@@ -17,16 +17,6 @@ add_library(atrv_mini_driver src/ATRVmini_driver.cc)
 add_library(rflex_driver src/rflex_driver.cc)
 target_link_libraries(atrv_mini_node ${catkin_LIBRARIES} atrv_mini_driver rflex_driver)
 
-add_executable(atrv_mini_sound src/ATRVmini_sound.cc)
-target_link_libraries(atrv_mini_sound ${catkin_LIBRARIES})
-
-add_executable(atrv_mini_joy src/ATRVmini_joy)
-target_link_libraries(atrv_mini_joy ${catkin_LIBRARIES})
-
-add_executable(footprint src/ATRVmini_footprint.cpp)
-target_link_libraries(footprint ${catkin_LIBRARIES})
-
-
 install(DIRECTORY scripts/
 	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
