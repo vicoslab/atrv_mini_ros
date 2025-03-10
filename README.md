@@ -33,3 +33,8 @@ Available topics (some of them don't really work):
 The update rate has been reduced to 15 Hz and state update requests to 0.5 Hz, to reduce procesing load on the 30 year old microcontroller and increase robot responsiveness.
 
 
+## Random Info Section
+
+### Power draw
+
+The RFlex board seems to draw 15W when idling, and the motor drivers draw an extra 10W when the brake is off.
