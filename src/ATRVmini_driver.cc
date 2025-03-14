@@ -102,18 +102,18 @@ void ATRVmini::getBaseSonarReadings(float* readings) const {
     getSonarReadings(BASE_INDEX, readings);
 }
 
-void ATRVmini::getBodySonarPoints(sensor_msgs::PointCloud* cloud) const {
+void ATRVmini::getBodySonarPoints(sensor_msgs::msg::PointCloud* cloud) const {
     getSonarPoints(BODY_INDEX, cloud);
 }
-void ATRVmini::getBaseSonarPoints(sensor_msgs::PointCloud* cloud) const {
+void ATRVmini::getBaseSonarPoints(sensor_msgs::msg::PointCloud* cloud) const {
     getSonarPoints(BASE_INDEX, cloud);
 }
 
-int ATRVmini::getBodyBumps(sensor_msgs::PointCloud* cloud) const {
+int ATRVmini::getBodyBumps(sensor_msgs::msg::PointCloud* cloud) const {
     return getBumps(BODY_INDEX, cloud);
 }
 
-int ATRVmini::getBaseBumps(sensor_msgs::PointCloud* cloud) const {
+int ATRVmini::getBaseBumps(sensor_msgs::msg::PointCloud* cloud) const {
     return getBumps(BASE_INDEX, cloud);
 }
 
@@ -151,7 +151,7 @@ void ATRVmini::getSonarReadings(const int ringi, float* adjusted_ranges) const {
     }
 }
 
-void ATRVmini::getSonarPoints(const int ringi, sensor_msgs::PointCloud* cloud) const {
+void ATRVmini::getSonarPoints(const int ringi, sensor_msgs::msg::PointCloud* cloud) const {
     int numSonar = SONARS_PER_RING[ringi];
     float* readings = new float[numSonar];
     getSonarReadings(ringi, readings);
@@ -171,7 +171,7 @@ void ATRVmini::getSonarPoints(const int ringi, sensor_msgs::PointCloud* cloud) c
     }
 }
 
-int ATRVmini::getBumps(const int index, sensor_msgs::PointCloud* cloud) const {
+int ATRVmini::getBumps(const int index, sensor_msgs::msg::PointCloud* cloud) const {
     int c = 0;
     double wedge = 2 * M_PI / BUMPERS_PER[index];
     double d = SONAR_RING_DIAMETER[index]*1.1;

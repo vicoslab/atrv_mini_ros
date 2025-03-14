@@ -2,7 +2,7 @@
 #define ATRVmini_DRIVER_H
 
 #include <rflex_driver.h>
-#include <sensor_msgs/PointCloud.h>
+#include <sensor_msgs/msg/point_cloud.hpp>
 
 /**
  *  ATRVmini Driver - Jaka Cikac 2013
@@ -34,22 +34,22 @@ class ATRVmini : public RFLEX {
 
         /** Gets a point cloud for sonar readings from body
          * \param cloud Data structure into which the sonar readings are saved */
-        void getBodySonarPoints(sensor_msgs::PointCloud* cloud) const;
+        void getBodySonarPoints(sensor_msgs::msg::PointCloud* cloud) const;
 
         /** Gets a point cloud for sonar readings from base
          * \param cloud Data structure into which the sonar readings are saved */
-        void getBaseSonarPoints(sensor_msgs::PointCloud* cloud) const;
+        void getBaseSonarPoints(sensor_msgs::msg::PointCloud* cloud) const;
 
         /** Gets a point cloud for the bump sensors on the body
          * \param cloud Data structure into which the bump readings are saved
          * \return number of active bump sensors
          */
-        int getBodyBumps(sensor_msgs::PointCloud* cloud) const;
+        int getBodyBumps(sensor_msgs::msg::PointCloud* cloud) const;
 
         /** Gets a point cloud for the bump sensors on the base
          * \param cloud Data structure into which the bump readings are saved
          * \return number of active bump sensors */
-        int getBaseBumps(sensor_msgs::PointCloud* cloud) const;
+        int getBaseBumps(sensor_msgs::msg::PointCloud* cloud) const;
 
         /** Sets the motion of the robot
          * \param tvel Translational velocity (in m/s)
@@ -75,13 +75,13 @@ class ATRVmini : public RFLEX {
         void getSonarReadings(const int ringi, float* readings) const;
         /**\param ringi BODY_INDEX or BASE_INDEX
          * \param cloud Data structure into which the sonar readings are saved */
-        void getSonarPoints(const int ringi, sensor_msgs::PointCloud* cloud) const;
+        void getSonarPoints(const int ringi, sensor_msgs::msg::PointCloud* cloud) const;
 
         /**\param index BODY_INDEX or BASE_INDEX
            \param cloud Data structure into which the bump sensors are saved
            \return number of active bump sensors
         */
-        int getBumps(const int index, sensor_msgs::PointCloud* cloud) const;
+        int getBumps(const int index, sensor_msgs::msg::PointCloud* cloud) const;
 
         int first_distance;
         bool found_distance;

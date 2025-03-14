@@ -9,7 +9,7 @@ A perfectly cromulent robot from a less civilized age.
 Connect the ATRV RFlex board to `/dev/ttyUSB0` and run:
 
 ```bash 
-roslaunch atrv_mini_ros atrv.launch
+ros2 launch atrv_mini_ros atrv.launch.py
 ```
 Use the RFlex GUI on the robot to turn off brakes, then /cmd_vel commands will be executed.
 

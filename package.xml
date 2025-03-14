@@ -1,33 +1,29 @@
 <?xml version="1.0"?>
-<package>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>atrv_mini_ros</name>
-  <version>0.0.3</version>
-  <description>The atrv_mini_ros package puts ROS on the iRobot ATRV Mini robot. </description>
-
-  <maintainer email="luka.cehovin@fri.uni-lj.si">Luka Čehovin</maintainer>
-  <maintainer email="jaka.cikac@gmail.com">Jaka Cikač</maintainer>
-  <maintainer email="vid.rijavec@fri.uni-lj.si">Jaka Cikač</maintainer>
+  <version>0.1.0</version>
+  <description>The atrv_mini_ros package puts ROS 2 on the iRobot ATRV Mini robot. </description>
+  <maintainer email="vid.rijavec@fri.uni-lj.si">Vid Rijavec</maintainer>
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>angles</build_depend>
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>tf2_ros</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>angles</depend>
 
-  <run_depend>rospy</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>angles</run_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
+
 </package>
