@@ -6,6 +6,16 @@ A perfectly cromulent robot from a less civilized age.
 
 ## Usage
 
+Install:
+
+```bash 
+cd ~/colcon_ws/src
+git clone https://github.com/vicoslab/atrv_mini_ros
+cd ..
+rosdep install -i --from-path src/atrv_mini_ros -y
+colcon_make
+```
+
 Connect the ATRV RFlex board to `/dev/ttyUSB0` and run:
 
 ```bash 
