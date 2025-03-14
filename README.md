@@ -13,7 +13,7 @@ cd ~/colcon_ws/src
 git clone https://github.com/vicoslab/atrv_mini_ros
 cd ..
 rosdep install -i --from-path src/atrv_mini_ros -y
-colcon_make
+colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release
 ```
 
 Connect the ATRV RFlex board to `/dev/ttyUSB0` and run:
